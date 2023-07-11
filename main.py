@@ -2,13 +2,30 @@ import os
 import time
 import boto3
 import requests
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile
 from starlette.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
+
 
 app = FastAPI()
 
+origins = [
+    "http://localhost:8000",
+    "https://yourt-ai.onrender.com",
+]
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
 s3 = boto3.client("s3")
-bucket_name = "yurt-bucket"  # replace with your bucket name
+bucket_name = "yurt-bucket"
 
 
 os.environ["REPLICATE_API_KEY"] = "r8_QYNslSpqZZqNVAlTEaACp7dldZVvd2Y1cz2og"
@@ -16,18 +33,12 @@ os.environ["REPLICATE_API_KEY"] = "r8_QYNslSpqZZqNVAlTEaACp7dldZVvd2Y1cz2og"
 
 @app.post("/uploadfile/")
 async def create_upload_file(file: UploadFile):
-    # Step 1: User uploads the file to your server
     file_content = await file.read()
 
-    # Step 2: Your server sends the file to Amazon S3 and stores it
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
 
-    # Step 3: Your server retrieves a publicly accessible URL to the file
     s3_file_url = f"https://{bucket_name}.s3.amazonaws.com/{file.filename}"
 
-
-    # Step 4: Your server sends this URL to the Replicate model
-    # POST request to Replicate to start the image restoration generation process
     startResponse = requests.post(
         "https://api.replicate.com/v1/predictions",
         headers={
@@ -49,10 +60,8 @@ async def create_upload_file(file: UploadFile):
 
     endpointUrl = startResponseData["urls"]["get"]
 
-    # GET request to get the status of the image restoration process & return the result when it's ready
     restoredImage = None
     while not restoredImage:
-        # Loop in 1s intervals until the alt text is ready
         print("polling for result...")
         finalResponse = requests.get(
             endpointUrl,
