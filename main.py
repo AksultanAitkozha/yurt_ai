@@ -17,6 +17,7 @@ load_dotenv()
 origins = [
     "http://localhost:8000",
     "https://yourt-ai.onrender.com",
+    "http://localhost:3000"
 ]
 
 
