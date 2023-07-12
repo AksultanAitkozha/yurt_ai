@@ -3,6 +3,7 @@ import time
 import boto3
 import requests
 from fastapi import FastAPI, UploadFile
+from dotenv import load_dotenv
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -10,10 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI()
 
 
-session = boto3.Session(
-    aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
-    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-)
+load_dotenv()
 
 
 origins = [
@@ -31,11 +29,13 @@ app.add_middleware(
 )
 
 
-s3 = boto3.client("s3")
+s3 = boto3.client("s3",
+    aws_access_key_id=os.getenv("AWS_ACCESS_KEY"),
+    aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+    region_name="eu-central-1"
+)
+
 bucket_name = "yurt-bucket"
-
-
-os.environ["REPLICATE_API_KEY"] = "r8_QYNslSpqZZqNVAlTEaACp7dldZVvd2Y1cz2og"
 
 
 @app.post("/uploadfile/")
