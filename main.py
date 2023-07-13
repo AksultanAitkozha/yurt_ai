@@ -40,7 +40,7 @@ bucket_name = "yurt-bucket"
 
 
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, style:str, material:str, location:str):
+async def create_upload_file(file: UploadFile, style:Optional[str] = None, material:Optional[str] = None, location:Optional[str] = None):
     file_content = await file.read()
 
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
