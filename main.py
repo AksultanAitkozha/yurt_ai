@@ -6,6 +6,7 @@ from fastapi import FastAPI, UploadFile
 from dotenv import load_dotenv
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from typing import Optional
 
 
 app = FastAPI()
