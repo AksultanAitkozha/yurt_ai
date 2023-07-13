@@ -17,7 +17,7 @@ load_dotenv()
 origins = [
     "http://localhost:8000",
     "https://yourt-ai.onrender.com",
-    "http://localhost:3000"
+    "http://localhost:3000",
 ]
 
 
@@ -40,12 +40,14 @@ bucket_name = "yurt-bucket"
 
 
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile):
+async def create_upload_file(file: UploadFile, style:str, material:str, location:str):
     file_content = await file.read()
 
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
 
     s3_file_url = f"https://{bucket_name}.s3.amazonaws.com/{file.filename}"
+
+    prompt_string = f"{style} {material} {location} realistic render of house"
 
     startResponse = requests.post(
         "https://api.replicate.com/v1/predictions",
@@ -57,15 +59,15 @@ async def create_upload_file(file: UploadFile):
             "version": "854e8727697a057c525cdb45ab037f64ecca770a1769cc52287c2e56472a247b",
             "input": {
                 "image": s3_file_url,
-                "prompt": "realistic render of modern cottage",
-                "a_prompt": "best quality, extremely detailed, photo from Pinterest, interior, cinematic photo, ultra-detailed, ultra-realistic, award-winning",
-                "n_prompt": "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality",
+                "prompt": prompt_string,
+                "a_prompt": "best quality, extremely detailed,  interior, cinematic photo, ultra-detailed, ultra-realistic, award-winning, city background, urban, skyscrapers",
+                "n_prompt": "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, trees",
             },
         },
     )
 
     startResponseData = startResponse.json()
-
+    print(startResponseData)
     endpointUrl = startResponseData["urls"]["get"]
 
     restoredImage = None
