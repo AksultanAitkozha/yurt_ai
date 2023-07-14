@@ -61,7 +61,7 @@ async def create_upload_file(file: UploadFile, style:Optional[str] = None, mater
             "input": {
                 "image": s3_file_url,
                 "prompt": prompt_string,
-                "a_prompt": "best quality, extremely detailed,  interior, cinematic photo, ultra-detailed, ultra-realistic, award-winning, city background, urban, skyscrapers",
+                #"a_prompt": "best quality, extremely detailed,  interior, cinematic photo, ultra-detailed, ultra-realistic, award-winning, city background, urban, skyscrapers",
                 "n_prompt": "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, trees",
             },
         },
