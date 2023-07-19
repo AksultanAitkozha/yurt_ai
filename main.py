@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
-from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -41,24 +40,22 @@ s3 = boto3.client("s3",
 )
 
 
-class OptionsModel(BaseModel):
-    options: Optional[str] = None
-
-
 bucket_name = "yurt-bucket"
 
 
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, options: BaseModel):
+async def create_upload_file(file: UploadFile, options: Optional[str] = None):
     file_content = await file.read()
 
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
 
     s3_file_url = f"https://{bucket_name}.s3.amazonaws.com/{file.filename}"
 
-    style, material, location = options.options.split(",")[:3] 
-
-    prompt_string = f"{style} {material} {location} realistic render of house"
+    if options:
+        style, material, location = options.split(',')[:3] # parse the string into components
+        prompt_string = f"{style} {material} {location} realistic render of house"
+    else:
+        prompt_string = "realistic render of house"
 
     startResponse = requests.post(
         "https://api.replicate.com/v1/predictions",
