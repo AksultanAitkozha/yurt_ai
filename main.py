@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from starlette.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from typing import Optional
+from pydantic import BaseModel
 
 
 app = FastAPI()
@@ -38,18 +39,25 @@ s3 = boto3.client("s3",
     region_name="eu-central-1"
 )
 
+
 bucket_name = "yurt-bucket"
 
 
+class OptionsModel(BaseModel):
+    style: Optional[str] = None
+    material: Optional[str] = None
+    location: Optional[str] = None
+
+
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, style:Optional[str] = None, material:Optional[str] = None, location:Optional[str] = None):
+async def create_upload_file(file: UploadFile, options: OptionsModel):
     file_content = await file.read()
 
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
 
     s3_file_url = f"https://{bucket_name}.s3.amazonaws.com/{file.filename}"
 
-    prompt_string = f"{style} {material} {location} realistic render of house"
+    prompt_string = f"{options.style} {options.material} {options.location} realistic render of house"
 
     startResponse = requests.post(
         "https://api.replicate.com/v1/predictions",
@@ -63,7 +71,7 @@ async def create_upload_file(file: UploadFile, style:Optional[str] = None, mater
                 "image": s3_file_url,
                 "prompt": prompt_string,
                 #"a_prompt": "best quality, extremely detailed,  interior, cinematic photo, ultra-detailed, ultra-realistic, award-winning, city background, urban, skyscrapers",
-                "n_prompt": "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, trees",
+                "n_prompt": "longbody, lowres, bad anatomy, bad hands, missing fingers, extra digit, fewer digits, cropped, worst quality, low quality, trees, text",
             },
         },
     )
