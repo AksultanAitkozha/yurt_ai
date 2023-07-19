@@ -44,27 +44,17 @@ s3 = boto3.client("s3",
 bucket_name = "yurt-bucket"
 
 
-class OptionsModel(BaseModel):
-    style: Optional[str] = None
-    material: Optional[str] = None
-    location: Optional[str] = None
-
-    @classmethod
-    def parse_raw(cls, b: str):
-        return super().parse_raw(json.loads(b))
-
-
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, options: OptionsModel):
+async def create_upload_file(file: UploadFile, options: str):
     file_content = await file.read()
 
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
 
     s3_file_url = f"https://{bucket_name}.s3.amazonaws.com/{file.filename}"
 
-    options_dict = json.loads(options)
+    options_dict = json.loads(options) 
 
-    prompt_string = f"{options.style} {options.material} {options.location} realistic render of house"
+    prompt_string = f"{options_dict['options'} realistic render of house"
 
     startResponse = requests.post(
         "https://api.replicate.com/v1/predictions",
