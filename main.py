@@ -2,6 +2,7 @@ import os
 import time
 import boto3
 import requests
+import json
 from fastapi import FastAPI, UploadFile
 from dotenv import load_dotenv
 from starlette.responses import JSONResponse
@@ -50,14 +51,16 @@ class OptionsModel(BaseModel):
 
 
 @app.post("/uploadfile/")
-async def create_upload_file(file: UploadFile, options: OptionsModel):
+async def create_upload_file(file: UploadFile, options: str):
     file_content = await file.read()
 
     s3.put_object(Bucket=bucket_name, Key=file.filename, Body=file_content)
 
     s3_file_url = f"https://{bucket_name}.s3.amazonaws.com/{file.filename}"
 
-    prompt_string = f"{options.style} {options.material} {options.location} realistic render of house"
+    options_dict = json.loads(options)
+
+    prompt_string = f"{options_dict['style']} {options_dict['material']} {options_dict['location']} realistic render of house"
 
     startResponse = requests.post(
         "https://api.replicate.com/v1/predictions",
