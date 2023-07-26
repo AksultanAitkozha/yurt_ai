@@ -21,6 +21,7 @@ origins = [
     "https://yourt-ai.onrender.com",
     "http://localhost:3000",
     "https://yurt-self.vercel.app",
+    "https://yurt-ai.vercel.app",
 ]
 
 
